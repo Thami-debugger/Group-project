@@ -1,0 +1,156 @@
+UNIVERSITY OF THE WITWATERSRAND , JOHANNESBURG
+School of Computer Science & Applied Mathematics
+COMS7044A Reproducibility Assignment
+1 Introduction
+In the field of scientific research and knowledge discovery , reproducibility stands as a corner-
+stone principle, ensuring the reliability and integrity of findings. The ability to reproduce exper-
+imental results and validate conclusions is fundamental for advancing scientific understanding
+and fostering trust within the scientific community and beyond. Reproducibility not only serves
+as a measure of the robustness of scientific claims, but also plays an important role in promoting
+transparency and accountability in research practices.
+In recent years, concerns have been raised about the reproducibility crisis across various
+disciplines. Studies have shown that a significant portion of published research findings cannot
+be reproduced, casting doubt on the reliability of scientific knowledge. This crisis not only
+undermines scientific progress but also erodes public trust in the scientific enterprise. While
+this is true primarily in the “soft sciences” and humanities, this phenomenon has also shown to
+be prevalent in artificial intelligence research.
+2 Aim
+In this assignment, you will be tasked with reproducing an existing paper. You may work either
+individually or in groups of up to three , although working alone will create significantly
+more work for yourself, so I would definitely recommend partnering up. The paper you will be
+required to replicate is the following:
+Miquel Ramírez and Hector Geffner. “Probabilistic Plan Recognition Using Off-the-
+Shelf Classical Planners.” Proceedings of the Twenty-Fourth AAAI Conference on Arti-
+ficial Intelligence (AAAI-10). 2010.
+The paper is freely available at:https://ojs.aaai.org/index.php/AAAI/article/view/7745.
+The paper builds on the same authors’ earlier work, which provides additional context:
+Miquel Ramírez and Hector Geffner. “Plan Recognition as Planning.”Proceedings of
+the 21st International Joint Conference on Artificial Intelligence (IJCAI-09). 2009.
+1
+3 Paper Overview
+The paper addresses the problem of goal recognition: given a planning domain, a set of candi-
+date goals, and a sequence of observed agent actions, determine which goal the agent is most
+likely pursuing. The key insight is that this can be solved using classical planners as black-box
+subroutines, without requiring a library of pre-compiled plans.
+For each candidate goal, the method computes the cost of the cheapest plan that iscompliant
+with the observations versus the cheapest plan that isnon-compliant. The cost difference is used
+to define a Boltzmann-style likelihood, which is combined with a prior via Bayes’ rule to produce
+a posterior probability distribution over goals.
+This approach integrates ideas from several areas covered in AIMA: planning and search
+(Chapters 10–11), probabilistic reasoning and Bayesian inference (Chapters 12–13), and the
+rational agent framework (Chapter 2).
+4 T ask Description
+Your aim is to replicate the experiments described in the paper. The goal is to assess whether
+the experiments are reproducible, and to determine whether the conclusions of the paper are
+supported by your findings. Your results can be either positive (i.e. confirm reproducibility),
+or negative (i.e. explain what you were unable to reproduce, and potentially explain why).
+Essentially , think of your role as an inspector verifying the validity of the experimental results
+and conclusions of the paper.
+What Y ou Will Implement
+Your implementation will involve:
+1. A PDDL compiler that takes an original planning domain and problem, together with an
+observation sequence, and produces the modified compliant ( G + O) and non-compliant
+(G + O) planning problems as described in Definition 2 and Proposition 3 of the paper.
+2. Integration with an existing classical planner to solve the compiled problems. Fast
+Downward is recommended ( https://www.fast-downward.org/), but you may use any
+suitable planner. You areexpected to use an existing planner — you do not need to imple-
+ment one from scratch.
+3. The Bayesian scoring layer that computes the cost difference ∆(G, O), the likelihoods,
+and the posterior goal probabilities from the planner’s cost outputs.
+4. An evaluation pipeline that generates observation sequences (by sampling prefixes of
+plans for a hidden goal), runs the recognition process across all candidate goals, and
+measures accuracy .
+Your glue code should be written in Python, though you will naturally also be writing PDDL
+and invoking external tools.
+2
+Handling Ambiguity
+Where the paper is ambiguous or underspecified, you should document the ambiguity , justify
+your interpretation, and note how your choice might affect results. This is one of the most
+valuable aspects of a reproducibility exercise. For example, the paper does not specify the value
+of the constant β used in the experiments. This is something you will need to determine or
+investigate.
+Statistical Rigour
+Your experiments should include multiple runs where applicable, and results should be reported
+with appropriate measures of variance (e.g. standard deviations, confidence intervals). Raw
+single-run numbers without any indication of variability are not sufficient.
+5 Expected Report Structure
+Your report should follow the provided template and include the following sections:
+1. Reproducibility Summary (first page) — A one-page summary covering scope, method-
+ology , results, and what was easy/difficult.
+2. Introduction — Brief context placing the paper in its high-level setting. Keep this short;
+your job is to reproduce the work, not to motivate it.
+3. Scope of Reproducibility — Which specific claims from the paper are you testing? State
+these as concrete, testable hypotheses (e.g. “the method achievesQ ≥ 0.9 on Block Words
+at 50% observation”). Each claim should be something your experiments can support or
+reject.
+4. Background — In your own words, summarise the main ideas behind the paper’s method.
+5. Methodology — What did you implement, what design choices did you make, and where
+did you deviate from the original? Describe your PDDL compilation approach, your plan-
+ner integration, your experimental setup, and computational requirements. Document
+any ambiguities you encountered and how you resolved them.
+6. Results — Figures and tables comparing your results to the original paper’s. Present
+results for each claim identified in the Scope of Reproducibility , and include any additional
+experiments needed to fill gaps in the original paper’s specification.
+7. Discussion — Do your results support the original claims? What was easy and what was
+difficult to reproduce, and why?
+A “negative result” which doesn’t support the main claims of the original paper is still valuable
+(often more so than a simple confirmation). Generally , a report should include any information
+future researchers or practitioners would find useful for reproducing or building upon the paper.
+3
+6 Submission Format
+You will need to submit three items:
+1. Report. A written report compiled in LATEX following the template here: https://www.
+overleaf.com/read/tffhyxkxdgwj#e2149f. You can find similar existing reproducibility
+reports online. For example, the accepted papers for the 2022 Reproducibility Challenge
+can be found here: https://openreview.net/group?id=ML_Reproducibility_Challenge/
+2022#accept.
+2. Code. A public GitHub repository with the code you have written. As this is a re-
+producibility exercise, your code should come with instructions in a README for how
+to install it (along with any dependencies) and execute the various experiments. The
+README should allow a reader to reproduce your results from scratch with minimal
+effort. This means: clear dependency installation instructions, how to obtain and set
+up the planner, how to run each experiment, and where to find the outputs. Good
+examples of READMEs can be found at https://github.com/bshall/ZeroSpeech and
+https://github.com/Michael-Beukman/MCHAMR.
+3. Video. A short video presentation of at most 5 minutes . The video should cover: what
+you implemented, a brief demo of your pipeline running on one example, your key results,
+and your overall assessment of the paper’s reproducibility . You do not need high produc-
+tion quality; a screen recording with voiceover is perfectly fine (PowerPoint is useful for
+making these). All group members should appear or speak in the video.
+7 Use of AI T ools
+You are welcome to use AI-assisted tools (e.g. Claude, ChatGPT, NotebookLM) to support your
+work, such as for understanding the paper, debugging code, generating PDDL, or drafting text.
+However, you are responsible for the correctness of everything you submit. If an AI tool pro-
+duces incorrect PDDL or a flawed analysis, that is your problem, not the tool’s. You should
+understand every line of code and every claim in your report.
+4
+8 Expected Outputs
+At the end of this assignment, you will need to submit the written report that follows the
+template provided, as well as the short video and a link to the GitHub repo you’ve created. The
+amount of work you are expected to do will depend on the size of your group and is as follows:
+Group Size Expectation
+1 Reimplemented method and applied it to at least two planning domains from
+the paper (e.g. Block Words and one other), with full analysis.
+2 Reimplemented method and applied it to all six planning domains reported in
+the paper, with full analysis.
+3 Reimplemented method and applied it to all six planning domains reported
+in the paper, with full analysis. Additionally , investigated one extension be-
+yond the original paper (e.g. comparison with the landmark-based approach
+of Pereira et al. (AAAI 2017), testing on a new planning domain not in the
+original paper, analysis of sensitivity to the β parameter, investigating the ef-
+fect of observation noise or missing observations, or comparing different plan-
+ner configurations).
+9 Useful Resources
+• Original project website: https://sites.google.com/site/prasplanning
+• An existing Python implementation of the paper’s method (useful as reference, but you
+should write your own code):
+https://github.com/pucrs-automated-planning/prob-plan-recognition
+• Fast Downward planner: https://www.fast-downward.org/
+• PDDL reference: https://planning.wiki/
+• IPC benchmark domains: https://github.com/potassco/pddl-instances
+• Original problems and code from the paper: https://sites.google.com/site/prasplanning
+• Pereira et al. (2017), landmark-based goal recognition (suggested extension for groups of
+3): https://ojs.aaai.org/index.php/AAAI/article/view/10987
+10 Timelines
+Final submission: 20 May 2026
+5
