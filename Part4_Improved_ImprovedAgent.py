@@ -21,6 +21,13 @@ except Exception:
 
 
 # ---------------------------------------------------------------------------
+# ImprovedAgent class definition
+# ---------------------------------------------------------------------------
+
+
+
+
+# ---------------------------------------------------------------------------
 # Helpers (inlined so this file is self-contained)
 # ---------------------------------------------------------------------------
 
@@ -98,7 +105,7 @@ class ImprovedAgent(Player):
     def __init__(self) -> None:
         self.color: Optional[Color] = None
         self.possible_fens: Set[str] = set()
-        self.engine = chess.engine.SimpleEngine.popen_uci(_resolve_stockfish(), setpgrp=True)
+        self.engine = chess.engine.SimpleEngine.popen_uci(_resolve_stockfish())
 
     def handle_game_start(self, color: Color, board: chess.Board, opponent_name: str) -> None:
         self.color = color
@@ -219,4 +226,19 @@ class ImprovedAgent(Player):
             self.possible_fens = next_states
 
     def handle_game_end(self, winner_color: Optional[Color], win_reason: Optional[WinReason], game_history: GameHistory) -> None:
+        import datetime
+        ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        if winner_color is None:
+            result = "DRAW"
+        elif winner_color == self.color:
+            result = "WIN"
+        else:
+            result = "LOSS"
+        color_name = "White" if self.color else "Black"
+        reason = win_reason.name if win_reason else "unknown"
+        white_turns = len(game_history._fens_after_move.get(True, []))
+        black_turns = len(game_history._fens_after_move.get(False, []))
+        total_moves = white_turns + black_turns
+        print(f"[{ts}] Game over | Result: {result} | Playing as: {color_name} | "
+              f"Reason: {reason} | Total half-moves: {total_moves}")
         self.engine.quit()

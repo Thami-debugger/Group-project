@@ -1,0 +1,78 @@
+{
+  "standings": {
+    "RandomSensing": {
+      "wins": 1,
+      "losses": 1,
+      "draws": 0,
+      "points": 1.0
+    },
+    "ImprovedAgent": {
+      "wins": 0,
+      "losses": 2,
+      "draws": 0,
+      "points": 0.0
+    },
+    "RandomBot": {
+      "wins": 3,
+      "losses": 1,
+      "draws": 0,
+      "points": 3.0
+    },
+    "TroutBot": {
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "points": 0.0
+    }
+  },
+  "games": [
+    {
+      "white": "RandomSensing",
+      "black": "RandomBot",
+      "winner": "RandomSensing wins",
+      "reason": "KING_CAPTURE"
+    },
+    {
+      "white": "RandomBot",
+      "black": "RandomSensing",
+      "winner": "RandomBot wins",
+      "reason": "TIMEOUT"
+    },
+    {
+      "white": "RandomSensing",
+      "black": "TroutBot",
+      "winner": null,
+      "reason": "Command '['C:\\\\Users\\\\nkosi\\\\Documents\\\\Data Science\\\\Masters\\\\Semester 1\\\\Artificial Intelligence\\\\Group project\\\\.venv\\\\Scripts\\\\python.exe', 'C:\\\\Users\\\\nkosi\\\\Documents\\\\Data Science\\\\Masters\\\\Semester 1\\\\Artificial Intelligence\\\\Group project\\\\RBC\\\\solution\\\\run_single_game.py', 'RandomSensing', 'TroutBot']' timed out after 300 seconds"
+    },
+    {
+      "white": "TroutBot",
+      "black": "RandomSensing",
+      "winner": null,
+      "reason": "e 38, in main\n    white = AGENTS[wn]()\n  File \"C:\\Users\\nkosi\\Documents\\Data Science\\Masters\\Semester 1\\Artificial Intelligence\\Group project\\.venv\\Lib\\site-packages\\reconchess\\bots\\trout_bot.py\", line 23, in __init__\n    raise KeyError(\n        'TroutBot requires an environment variable called \"{}\" pointing to the Stockfish executable'.format(\n            STOCKFISH_ENV_VAR))\nKeyError: 'TroutBot requires an environment variable called \"STOCKFISH_EXECUTABLE\" pointing to the Stockfish executable'\n"
+    },
+    {
+      "white": "ImprovedAgent",
+      "black": "RandomBot",
+      "winner": "RandomBot wins",
+      "reason": "TIMEOUT"
+    },
+    {
+      "white": "RandomBot",
+      "black": "ImprovedAgent",
+      "winner": "RandomBot wins",
+      "reason": "TIMEOUT"
+    },
+    {
+      "white": "ImprovedAgent",
+      "black": "TroutBot",
+      "winner": null,
+      "reason": "Command '['C:\\\\Users\\\\nkosi\\\\Documents\\\\Data Science\\\\Masters\\\\Semester 1\\\\Artificial Intelligence\\\\Group project\\\\.venv\\\\Scripts\\\\python.exe', 'C:\\\\Users\\\\nkosi\\\\Documents\\\\Data Science\\\\Masters\\\\Semester 1\\\\Artificial Intelligence\\\\Group project\\\\RBC\\\\solution\\\\run_single_game.py', 'ImprovedAgent', 'TroutBot']' timed out after 300 seconds"
+    },
+    {
+      "white": "TroutBot",
+      "black": "ImprovedAgent",
+      "winner": null,
+      "reason": "e 38, in main\n    white = AGENTS[wn]()\n  File \"C:\\Users\\nkosi\\Documents\\Data Science\\Masters\\Semester 1\\Artificial Intelligence\\Group project\\.venv\\Lib\\site-packages\\reconchess\\bots\\trout_bot.py\", line 23, in __init__\n    raise KeyError(\n        'TroutBot requires an environment variable called \"{}\" pointing to the Stockfish executable'.format(\n            STOCKFISH_ENV_VAR))\nKeyError: 'TroutBot requires an environment variable called \"STOCKFISH_EXECUTABLE\" pointing to the Stockfish executable'\n"
+    }
+  ]
+}

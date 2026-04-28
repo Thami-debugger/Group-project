@@ -92,7 +92,7 @@ class RandomSensingAgent(Player):
     def __init__(self) -> None:
         self.color: Optional[Color] = None
         self.possible_fens: Set[str] = set()
-        self.engine = chess.engine.SimpleEngine.popen_uci(_resolve_stockfish(), setpgrp=True)
+        self.engine = chess.engine.SimpleEngine.popen_uci(_resolve_stockfish())
 
     def handle_game_start(self, color: Color, board: chess.Board, opponent_name: str) -> None:
         self.color = color
