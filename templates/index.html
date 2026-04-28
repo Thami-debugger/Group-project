@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RBC Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="hero">
+            <div>
+                <p class="eyebrow">Reconnaissance Blind Chess</p>
+                <h1>Visualize board states, predicted futures, and engine choices.</h1>
+                <p class="hero-copy">
+                    This dashboard wraps your Part 1, Part 2, and Part 3 logic so you can inspect positions,
+                    generate candidate states, filter by sensing windows, and preview selected moves without using stdin.
+                </p>
+            </div>
+            <div class="status-panel">
+                <div>
+                    <span class="status-label">Service</span>
+                    <strong id="health-status">Checking API...</strong>
+                </div>
+                <div>
+                    <span class="status-label">Stockfish</span>
+                    <strong id="stockfish-status">Checking engine...</strong>
+                </div>
+            </div>
+        </header>
+
+        <main class="workspace">
+            <section class="board-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="section-tag">Live Position</p>
+                        <h2>Board Preview</h2>
+                    </div>
+                    <button class="ghost-button" id="load-sample-board" type="button">Load Sample</button>
+                </div>
+
+                <div class="play-card">
+                    <div class="tool-header compact-header">
+                        <div>
+                            <p class="section-tag">Play Mode</p>
+                            <h3>Play On The Board</h3>
+                        </div>
+                    </div>
+
+                    <form id="play-form">
+                        <label class="field-label" for="play-fen">Start Position</label>
+                        <textarea id="play-fen" class="code-area" rows="3"></textarea>
+                        <label class="toggle-row" for="engine-enabled">
+                            <input id="engine-enabled" type="checkbox" checked>
+                            <span>Play against engine</span>
+                        </label>
+                        <div class="color-choice-row" id="color-choice-row">
+                            <span class="color-choice-label">You play as:</span>
+                            <label class="toggle-row"><input type="radio" name="player-color" value="white" checked> White</label>
+                            <label class="toggle-row"><input type="radio" name="player-color" value="black"> Black</label>
+                        </div>
+                        <div class="play-actions">
+                            <button class="primary-button" id="start-game" type="submit">Start Game</button>
+                            <button class="secondary-button" id="reset-game" type="button">Reset Board</button>
+                        </div>
+                    </form>
+
+                    <div class="play-actions game-controls" id="game-controls" style="display:none">
+                        <button class="secondary-button" id="undo-move" type="button">&#8592; Undo</button>
+                        <button class="danger-button" id="resign-game" type="button">Resign</button>
+                        <button class="ghost-button wide-action" id="use-position" type="button">Use Current Position</button>
+                    </div>
+
+                    <div id="play-status" class="message-banner warning">Start a game, then click a piece and a destination square.</div>
+                    <div class="play-meta" id="play-meta"></div>
+                    <div class="history-panel">
+                        <strong>Move History</strong>
+                        <ol id="move-history" class="move-history"></ol>
+                    </div>
+                </div>
+
+                <div class="board-frame">
+                    <div id="board-grid" class="board-grid" aria-label="Chess board"></div>
+                </div>
+
+                <div class="board-meta" id="board-meta"></div>
+
+                <label class="field-label" for="fen-preview">Current FEN</label>
+                <textarea id="fen-preview" class="code-area" rows="3" readonly></textarea>
+
+                <label class="field-label" for="ascii-preview">ASCII Board</label>
+                <textarea id="ascii-preview" class="code-area" rows="8" readonly></textarea>
+            </section>
+
+            <section class="control-panel">
+                <div class="tools-grid">
+                    <article class="tool-card">
+                        <div class="tool-header">
+                            <p class="section-tag">Part 1.1</p>
+                            <h3>Board Representation</h3>
+                        </div>
+                        <form id="board-form">
+                            <label class="field-label" for="board-fen">FEN</label>
+                            <textarea id="board-fen" class="code-area" rows="3"></textarea>
+                            <button class="primary-button" type="submit">Render Board</button>
+                        </form>
+                    </article>
+
+                    <article class="tool-card">
+                        <div class="tool-header">
+                            <p class="section-tag">Part 1.2</p>
+                            <h3>Move Execution</h3>
+                        </div>
+                        <form id="move-form">
+                            <label class="field-label" for="move-fen">FEN</label>
+                            <textarea id="move-fen" class="code-area" rows="3"></textarea>
+                            <label class="field-label" for="move-uci">UCI Move</label>
+                            <input id="move-uci" class="text-input" placeholder="e2e4">
+                            <button class="primary-button" type="submit">Apply Move</button>
+                        </form>
+                    </article>
+
+                    <article class="tool-card wide-card">
+                        <div class="tool-header">
+                            <p class="section-tag">Part 2.1</p>
+                            <h3>Next Move Prediction</h3>
+                        </div>
+                        <form id="moves-form">
+                            <label class="field-label" for="moves-fen">FEN</label>
+                            <textarea id="moves-fen" class="code-area" rows="3"></textarea>
+                            <button class="primary-button" type="submit">Generate Moves</button>
+                        </form>
+                        <div id="moves-results" class="chip-list empty-state">Move candidates will appear here.</div>
+                    </article>
+
+                    <article class="tool-card wide-card">
+                        <div class="tool-header">
+                            <p class="section-tag">Part 2.2 / 2.3 / 2.4</p>
+                            <h3>State Explorer</h3>
+                        </div>
+
+                        <div class="subtool-grid">
+                            <form id="states-form" class="subtool">
+                                <label class="field-label" for="states-fen">All Next States</label>
+                                <textarea id="states-fen" class="code-area" rows="3"></textarea>
+                                <button class="secondary-button" type="submit">Generate States</button>
+                            </form>
+
+                            <form id="captures-form" class="subtool">
+                                <label class="field-label" for="captures-fen">Capture Filter FEN</label>
+                                <textarea id="captures-fen" class="code-area" rows="3"></textarea>
+                                <label class="field-label" for="capture-square">Capture Square</label>
+                                <input id="capture-square" class="text-input" placeholder="d6">
+                                <button class="secondary-button" type="submit">Filter Captures</button>
+                            </form>
+
+                            <form id="sensing-form" class="subtool">
+                                <label class="field-label" for="sensing-fens">Candidate FENs</label>
+                                <textarea id="sensing-fens" class="code-area" rows="5" placeholder="One FEN per line"></textarea>
+                                <label class="field-label" for="sensing-window">Sensing Window</label>
+                                <textarea id="sensing-window" class="code-area" rows="3" placeholder="c8:?;d8:?;e8:?;c7:p;d7:n;e7:?;c6:?;d6:?;e6:?"></textarea>
+                                <button class="secondary-button" type="submit">Apply Sensing Filter</button>
+                            </form>
+                        </div>
+
+                        <div id="states-results" class="state-gallery empty-state">Generated board states will appear here.</div>
+                    </article>
+
+                    <article class="tool-card wide-card">
+                        <div class="tool-header">
+                            <p class="section-tag">Part 3</p>
+                            <h3>Move Selection</h3>
+                        </div>
+                        <div class="subtool-grid selector-grid">
+                            <form id="select-single-form" class="subtool">
+                                <label class="field-label" for="select-single-fen">Single Board</label>
+                                <textarea id="select-single-fen" class="code-area" rows="3"></textarea>
+                                <button class="secondary-button" type="submit">Select Best Move</button>
+                            </form>
+
+                            <form id="select-multiple-form" class="subtool">
+                                <label class="field-label" for="select-multiple-fens">Multiple Boards</label>
+                                <textarea id="select-multiple-fens" class="code-area" rows="5" placeholder="One FEN per line"></textarea>
+                                <button class="secondary-button" type="submit">Majority Vote Move</button>
+                            </form>
+                        </div>
+                        <div id="select-results" class="result-callout empty-state">Engine selection output will appear here.</div>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <template id="state-card-template">
+        <button class="state-card" type="button">
+            <div class="mini-board"></div>
+            <div class="state-info">
+                <strong class="state-title"></strong>
+                <p class="state-fen"></p>
+            </div>
+        </button>
+    </template>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
