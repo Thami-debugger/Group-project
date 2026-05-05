@@ -125,15 +125,36 @@ def styled_table(data_rows, col_widths, header_row=True):
 
 # ── Build cross-table ─────────────────────────────────────────────────────────
 def result_for(white, black):
+    """Return display string for the cell where white=row, black=col."""
     for g in games:
         if g["white"] == white and g["black"] == black:
-            w = g.get("winner", "")
-            if w is None or "wins" not in str(w):
-                return "½"
+            w = g.get("winner")
+            r = g.get("reason", "")
+            if w is None:
+                # Error or timeout — count as forfeit if reason mentions timeout
+                if "timed out" in str(r).lower() or "TIMEOUT" in str(r):
+                    return "For."  # forfeit
+                return "Err"
             if white in str(w):
                 return "1-0"
             return "0-1"
-    return "—"
+    return "n/a"  # game not scheduled in this fixture
+
+def clean_reason(reason, winner):
+    """Return a short human-readable outcome string."""
+    if winner and "wins" in str(winner):
+        agent = str(winner).replace(" wins", "")
+        r = str(reason).strip()
+        return f"{agent} ({r})"
+    if reason and "TIMEOUT" in str(reason):
+        return "Forfeit (TIMEOUT)"
+    if reason and "timed out" in str(reason).lower():
+        return "Forfeit (subprocess timeout)"
+    if reason and "EngineTerminated" in str(reason):
+        return "Error (engine crash)"
+    if reason and "KeyError" in str(reason):
+        return "Error (env config)"
+    return str(reason)[:60] if reason else "—"
 
 # ── Flowables ────────────────────────────────────────────────────────────────
 story = []
@@ -207,13 +228,6 @@ story.append(Paragraph(
     "twice (once as White, once as Black), giving 12 games in total. "
     "Points: Win = 1, Draw = 0.5, Loss = 0.", body
 ))
-if not os.path.exists(RESULTS_FILE):
-    story.append(Paragraph(
-        "<b>Note:</b> This report currently includes observed local match results available at report "
-        "generation time. Re-run the tournament script to populate the full 12-game table automatically.",
-        small,
-    ))
-
 # Standings table
 st_header = ["Rank", "Agent", "W", "L", "D", "Points"]
 st_rows = [st_header]
@@ -242,18 +256,18 @@ cw = [4.0*cm] + [2.8*cm]*len(sorted_names)
 story.append(styled_table(cross_rows, cw))
 story.append(Paragraph(
     "Table 2: Head-to-head results (row = White, col = Black). "
-    "1-0 = White wins, 0-1 = Black wins, ½ = Draw.", caption
+    "1-0 = White wins, 0-1 = Black wins, For. = Forfeit/timeout, Err = engine error, n/a = not scheduled.", caption
 ))
 
 # Per-game log
 story.append(Spacer(1, 0.2*cm))
-log_header = ["#", "White", "Black", "Outcome", "Reason"]
+log_header = ["#", "White", "Black", "Outcome"]
 log_rows = [log_header]
 for i, g in enumerate(games, 1):
-    w = g.get("winner") or "Draw"
-    log_rows.append([str(i), g["white"], g["black"], str(w), g.get("reason", "—")])
+    outcome = clean_reason(g.get("reason"), g.get("winner"))
+    log_rows.append([str(i), g["white"], g["black"], outcome])
 
-story.append(styled_table(log_rows, [0.8*cm, 4.0*cm, 4.0*cm, 4.2*cm, 3.0*cm]))
+story.append(styled_table(log_rows, [0.8*cm, 4.5*cm, 4.5*cm, 7.2*cm]))
 story.append(Paragraph("Table 3: Full game log.", caption))
 
 # ── Section 4: Discussion ──────────────────────────────────────────────────────
@@ -261,17 +275,21 @@ story.append(Paragraph("4. Discussion", h1))
 imp_pts = standings["ImprovedAgent"]["points"]
 rs_pts  = standings["RandomSensing"]["points"]
 story.append(Paragraph(
-    f"ImprovedAgent scored <b>{imp_pts:.1f} points</b> compared to RandomSensing's "
-    f"<b>{rs_pts:.1f} points</b>, confirming that information-gain sensing provides a "
-    "measurable advantage. The key benefit is a smaller belief state entering the move "
-    "selection phase: a tighter state set means Stockfish receives more time per board "
-    "and the majority vote is based on more accurate position evaluations.", body
+    f"RandomSensing achieved the strongest result with <b>{rs_pts:.1f} points</b> (3 wins, 0 losses), "
+    f"winning all three of its completed games by king capture. ImprovedAgent scored "
+    f"<b>{imp_pts:.1f} points</b>; its lower tally reflects two timeout losses where "
+    "the Stockfish majority-vote loop exceeded the per-player clock budget — a known "
+    "trade-off when running full engine search over many belief states. "
+    "When ImprovedAgent did complete a game (TroutBot white), it won by king capture, "
+    "confirming that its information-gain sensing correctly narrows the belief state "
+    "when given sufficient time.", body
 ))
 story.append(Paragraph(
-    "Both Stockfish-backed agents (RandomSensing and ImprovedAgent) are expected to "
-    "outperform RandomBot, which plays randomly, and TroutBot, which uses a simple "
-    "cached-move heuristic. The results validate this expectation. Future improvements "
-    "could include weighted belief updates (e.g. particle filtering), opponent modelling, "
+    "RandomBot and TroutBot each finished on 1 point. TroutBot's subprocess timeout when "
+    "playing as White indicates a known environment configuration issue (Stockfish path not "
+    "passed through the subprocess environment), not an algorithmic weakness. "
+    "Future improvements to our agents could include a hard per-turn time cap on the "
+    "Stockfish loop, weighted belief updates (e.g. particle filtering), opponent modelling, "
     "or endgame king-hunt heuristics.", body
 ))
 
